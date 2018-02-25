@@ -1,0 +1,28 @@
+{
+    "name": "kanel/enuma",
+    "description": "Dynamically Create and Edit php classes, interfaces and traits",
+    "minimum-stability": "stable",
+    "require" : {
+        "php" : ">=7.0",
+        "phpspec/phpspec": "^4.3"
+    },
+    "repositories" : [ {
+        "type" : "composer",
+        "url" : "https://packagist.org/"
+    } ],
+    "require-dev" : {
+    },
+    "autoload" : {
+        "psr-4" : {
+            "Kanel\\Enuma\\" : "src/",
+            "Kanel\\Enuma\\Tests\\" : "tests/"
+        }
+    },
+    "authors" : [ {
+        "name" : "Adil El Kanabi",
+        "email" : "adil.kanabi@gmail.com"
+    } ],
+    "config": {
+        "preferred-install": "dist"
+    }
+}
