@@ -11,8 +11,8 @@ class PhpInterface extends PhpClass
     public function __construct(string $name, CodingStyle $codingStyle = null)
     {
         parent::__construct($name, $codingStyle);
-		$this->tokens[self::CLASS_KEY] = (new CInterface($name, $this->codingStyle))->toTokens();
-    }
+		$this->collection->add(new CInterface($name, $this->codingStyle));
+	}
 
     /**
      * @param bool $isAbstract

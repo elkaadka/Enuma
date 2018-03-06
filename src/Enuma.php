@@ -45,6 +45,15 @@ class Enuma
         return file_put_contents($filename, $this->stringify($php));
     }
 
+	public function load(string $filename): bool
+	{
+		if (!file_exists($filename)) {
+			return false;
+		}
+
+		$phpClass = (new Tokenizer(file_get_contents($filename)))->toTokens();
+	}
+
 	protected function stroke($tokens, CodingStyle $codingStyle): string
 	{
 	    $_ = '';

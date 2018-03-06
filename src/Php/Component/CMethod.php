@@ -10,16 +10,22 @@ use Kanel\Enuma\Token\TWhitespace;
 
 class CMethod extends Component
 {
-    protected $method;
+	protected $method;
+	protected $cComment;
+	protected $cMethodBody;
 
-    public function __construct(Method $method, CodingStyle $codingStyle)
+    public function __construct(Method $method, CodingStyle $codingStyle, CComment $cComment = null, CMethodBody $cMethodBody)
     {
         parent::__construct($codingStyle);
         $this->method = $method;
+		$this->cComment = $cComment;
+		$this->cMethodBody = $cMethodBody;
     }
 
     function toTokens(): array
     {
+		$tokens = $this->cComment ? $this->cComment->toTokens() : [];
+
         $tokens[] = new TWhitespace($this->codingStyle->getIndentation());
 
         if ($this->method->isAbstract()) {
@@ -71,6 +77,8 @@ class CMethod extends Component
             $tokens[] = new TWhitespace();
             $tokens[] = new TString($this->method->getReturnType());
         }
+
+        $tokens = array_merge($tokens, $this->cMethodBody ? $this->cMethodBody->toTokens() : []);
 
         return $tokens;
     }

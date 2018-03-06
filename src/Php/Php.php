@@ -5,31 +5,20 @@ namespace Kanel\Enuma\Php;
 use Kanel\Enuma\CodingStyle\CodingStyle;
 use Kanel\Enuma\CodingStyle\Psr2;
 use Kanel\Enuma\Entity\Method;
+use Kanel\Enuma\Php\Component\CClassEnd;
+use Kanel\Enuma\Php\Component\CClassStart;
 
 abstract class Php
 {
-	const NAMESPACE_KEY = 0;
-    const USE_KEY = 1;
-    const CLASS_COMMENT = 2;
-    const ABSTRACT_KEY = 3;
-    const FINAL_KEY = 4;
-    const CLASS_KEY = 5;
-    const EXTENDS_KEY = 6;
-    const IMPLEMENTS_KEY = 7;
-    const CLASS_START = 8;
-    const USE_TRAIT_KEY = 9;
-    const CONST_KEY = 10;
-	const PROPERTY_KEY = 11;
-	const METHODS_KEY = 12;
-	const CLASS_END = 13;
-
-    protected $tokens;
-
+	protected $collection;
     protected $codingStyle;
 
     public function __construct(CodingStyle $codingStyle = null)
     {
         $this->codingStyle = $codingStyle ?? new Psr2();
+		$this->collection = new Collection();
+		$this->collection->add(new CClassStart($this->codingStyle));
+		$this->collection->add(new CClassEnd($this->codingStyle));
     }
 
     public function getCodingStyle(): CodingStyle
@@ -49,8 +38,8 @@ abstract class Php
         return [$namespace, $classBaseName];
     }
 
-	public function getTokens(string $key)
+	public function getCollection()
 	{
-		return $this->tokens[$key] ?? null;
+		return $this->collection ?? null;
 	}
 }

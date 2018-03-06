@@ -28,29 +28,26 @@ class PhpClass extends Php
     public function __construct(string $name, CodingStyle $codingStyle = null)
     {
         parent::__construct($codingStyle);
-
-		$this->tokens[self::CLASS_KEY] = (new CClass($name, $this->codingStyle))->toTokens();
-		$this->tokens[self::CLASS_START] = (new CClassStart($this->codingStyle))->toTokens();
-		$this->tokens[self::CLASS_END] = (new CClassEnd($this->codingStyle))->toTokens();
+		$this->collection->add(new CClass($name, $this->codingStyle));
     }
 
     public function namespace(string $namespace): PhpClass
     {
-		$this->tokens[self::NAMESPACE_KEY] = (new CNamespace($namespace, $this->codingStyle))->toTokens();
+		$this->collection->add(new CNamespace($namespace, $this->codingStyle));
 
 		return $this;
     }
 
     public function use(string $class): PhpClass
     {
-		$this->tokens[self::USE_KEY][] = (new CUse($class, $this->codingStyle))->toTokens();
+		$this->collection->add(new CUse($class, $this->codingStyle));
 
         return $this;
     }
 
     public function addComment(string $comment)
     {
-        $this->tokens[self::CLASS_COMMENT] = (new CComment($comment, $this->codingStyle))->toTokens();
+        $this->collection->add(new CComment($comment, $this->codingStyle));
 
         return $this;
     }
@@ -58,10 +55,10 @@ class PhpClass extends Php
     public function abstract(bool $isAbstract = true): PhpClass
     {
         if ($isAbstract) {
-            $this->tokens[self::ABSTRACT_KEY] = (new CAbstract($this->codingStyle))->toTokens();
+            $this->collection->add(new CAbstract($this->codingStyle));
             $this->final(false);
         } else {
-            unset($this->tokens[self::ABSTRACT_KEY]);
+			$this->collection->remove(CAbstract::class);
         }
 
         return $this;
@@ -70,10 +67,10 @@ class PhpClass extends Php
     public function final(bool $isFinal = true): PhpClass
     {
         if ($isFinal) {
-            $this->tokens[self::FINAL_KEY] = (new CFinal($this->codingStyle))->toTokens();
+			$this->collection->add(new CFinal($this->codingStyle));
 			$this->abstract(false);
         } else {
-            unset($this->tokens[self::FINAL_KEY]);
+			$this->collection->remove(CFinal::class);
         }
 
         return $this;
@@ -86,7 +83,7 @@ class PhpClass extends Php
 			$this->use($class);
 		}
 
-		$this->tokens[self::EXTENDS_KEY] = (new CExtends($classBaseName, $this->codingStyle))->toTokens();
+		$this->collection->add(new CExtends($classBaseName, $this->codingStyle));
 
 		return $this;
     }
@@ -98,11 +95,13 @@ class PhpClass extends Php
 			$this->use($class);
 		}
 
-		$this->tokens[self::IMPLEMENTS_KEY] = (new CImplements(
-		    $interfaceBaseName,
-            $this->tokens[self::IMPLEMENTS_KEY] ?? [] ,
-            $this->codingStyle)
-        )->toTokens();
+		$this->collection->add(
+			new CImplements(
+				$interfaceBaseName,
+				$this->codingStyle,
+				$this->collection->get(CImplements::class)
+			)
+		);
 
         return $this;
     }
@@ -114,21 +113,21 @@ class PhpClass extends Php
 			$this->use($trait);
 		}
 
-		$this->tokens[self::USE_TRAIT_KEY][] = (new CUseTrait($traitBaseName, $this->codingStyle))->toTokens();
+		$this->collection->add(new CUseTrait($traitBaseName, $this->codingStyle));
 
         return $this;
     }
 
     public function addConst(Constant $constant): PhpClass
     {
-        $this->tokens[self::CONST_KEY][] = (new CConst($constant, $this->codingStyle))->toTokens();
+		$this->collection->add(new CConst($constant, $this->codingStyle));
 
         return $this;
     }
 
     public function addProperty(Property $property): PhpClass
     {
-        $this->tokens[self::PROPERTY_KEY][] = (new CProperty($property, $this->codingStyle))->toTokens();
+		$this->collection->add(new CProperty($property, $this->codingStyle));
 
         return $this;
     }
@@ -137,27 +136,24 @@ class PhpClass extends Php
     {
         $this->prepareMethod($method);
 
-        $tokens = [];
-
+		$cComment = null;
 		if ($method->getComment()) {
-            $tokens = (new CComment($method->getComment(), $this->codingStyle, true))->toTokens();
+            $cComment = new CComment($method->getComment(), $this->codingStyle, true);
         }
 
-        $tokens = array_merge($tokens, (new CMethod($method, $this->codingStyle))->toTokens());
+        $methodHasBody = true;
+        if ($method->isAbstract() || $this instanceof PhpInterface) {
+			$methodHasBody = false;
+		}
 
-		if (!$method->isAbstract() || $this instanceof PhpInterface) {
-            $tokens = array_merge(
-                $tokens,
-                (new CMethodBody($method, $this->codingStyle))->toTokens()
-            );
-        } else {
-            $tokens[] = ';';
-
-        }
-
-        $tokens[] = new TWhitespace($this->codingStyle->getNewLine());
-
-        $this->tokens[self::METHODS_KEY][] = $tokens;
+		$this->collection->add(
+			new CMethod(
+				$method,
+				$this->codingStyle,
+				$cComment,
+				new CMethodBody($methodHasBody, $this->codingStyle)
+			)
+		);
 
         return $this;
     }

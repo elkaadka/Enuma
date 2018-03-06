@@ -9,16 +9,22 @@ use Kanel\Enuma\Token\TWhitespace;
 
 class CMethodBody extends Component
 {
-    protected $method;
+	protected $hasBody;
 
-    public function __construct(Method $method, CodingStyle $codingStyle)
+    public function __construct(bool $hasBody, CodingStyle $codingStyle)
     {
         parent::__construct($codingStyle);
-        $this->method = $method;
+        $this->hasBody = $hasBody;
     }
 
     function toTokens(): array
     {
+		$tokens = [];
+
+    	if (!$this->hasBody) {
+			return [';', new TWhitespace($this->codingStyle->getNewLine())];
+		}
+
         if ($this->codingStyle->isMethodBracesInNewLine()) {
             $tokens[] = new TWhitespace($this->codingStyle->getNewLine());
             $tokens[] = new TWhitespace($this->codingStyle->getIndentation());
@@ -33,7 +39,8 @@ class CMethodBody extends Component
         $tokens[] = new TWhitespace($this->codingStyle->getNewLine());
         $tokens[] = new TWhitespace($this->codingStyle->getIndentation());
         $tokens[] = '}';
-        $tokens[] = new TWhitespace($this->codingStyle->getNewLine());
+		$tokens[] = new TWhitespace($this->codingStyle->getNewLine());
+		$tokens[] = new TWhitespace($this->codingStyle->getNewLine());
 
         return $tokens;
     }

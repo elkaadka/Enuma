@@ -11,7 +11,7 @@ class PhpTrait extends PhpClass
     public function __construct(string $name, CodingStyle $codingStyle = null)
     {
         parent::__construct($name, $codingStyle);
-		$this->tokens[self::CLASS_KEY] = (new CTrait($name, $this->codingStyle))->toTokens();
+		$this->collection->add(new CTrait($name, $this->codingStyle));
     }
 
     public function abstract(bool $isAbstract = true): PhpClass
